@@ -1,0 +1,8 @@
+path: CHANGE_THIS/datasets/preprocessed_object_present
+train: train/images
+val: val/images
+
+names:
+  0: Explosives
+  1: Anti-personnel mine
+  2: Anti-vehicle mine
