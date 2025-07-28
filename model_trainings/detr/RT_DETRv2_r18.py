@@ -1,12 +1,15 @@
-import torch
+import colorsys
 import os
-import json
-from PIL import Image
-from torch.utils.data import Dataset, DataLoader
+
+from PIL import Image, ImageDraw, ImageFont
+import torch
+from torch.utils.data import Dataset
 from transformers import RTDetrV2ForObjectDetection, RTDetrImageProcessor, RTDetrV2Config, Trainer, TrainingArguments
-import numpy as np
-from sklearn.model_selection import train_test_split
+
+
 MODEL_START_PATH= "./rtdetr_finetuned" # "checkpoint-7000"
+
+
 class YOLOtoRTDETRDataset(Dataset):
     def __init__(self, images_dir, labels_dir, image_processor, class_names, split='train'):
         self.images_dir = images_dir
@@ -109,6 +112,7 @@ class YOLOtoRTDETRDataset(Dataset):
             "labels": target
         }
 
+
 def collate_fn(batch):
     """Custom collate function for batching"""
     pixel_values = torch.stack([item["pixel_values"] for item in batch])
@@ -118,6 +122,7 @@ def collate_fn(batch):
         "pixel_values": pixel_values,
         "labels": labels
     }
+
 
 def setup_fine_tuning(dataset_path, class_names, model_name="PekingU/rtdetr_v2_r18vd"):
     """
@@ -159,6 +164,7 @@ def setup_fine_tuning(dataset_path, class_names, model_name="PekingU/rtdetr_v2_r
     
     return model, image_processor, train_dataset, val_dataset
 
+
 def train_model(model, train_dataset, val_dataset, output_dir="./rtdetr_finetuned"):
     """Train the model"""
     training_args = TrainingArguments(
@@ -198,6 +204,7 @@ def train_model(model, train_dataset, val_dataset, output_dir="./rtdetr_finetune
     
     return trainer
 
+
 def load_finetuned_model(model_path):
     """Load fine-tuned model for inference"""
     
@@ -208,6 +215,7 @@ def load_finetuned_model(model_path):
     model.eval()  # Set to evaluation mode
     
     return model, image_processor
+
 
 def inference_with_finetuned_model(model_path, image_path, threshold=0.3):
     """Run inference with your fine-tuned model"""
@@ -239,6 +247,7 @@ def inference_with_finetuned_model(model_path, image_path, threshold=0.3):
             print(f"{class_name}: {score:.3f} {box}")
     
     return results
+
 
 # Batch inference for multiple images
 def batch_inference(model_path, images_folder, threshold=0.3):
@@ -281,6 +290,7 @@ def batch_inference(model_path, images_folder, threshold=0.3):
             print(f"Error processing {image_file}: {e}")
     
     return results_dict
+
 
 def debug_inference(model_path, image_path, threshold=0.1):
     """Debug inference to see what's happening"""
@@ -351,10 +361,6 @@ def debug_inference(model_path, image_path, threshold=0.1):
     
     return results
 
-from PIL import Image, ImageDraw, ImageFont
-from transformers import RTDetrV2ForObjectDetection, RTDetrImageProcessor
-import colorsys
-import os
 
 def visualize_detections(model_path, image_path, threshold=0.3, save_path=None):
     """

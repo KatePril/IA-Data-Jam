@@ -1,32 +1,46 @@
-import wandb
 import os
-import csv
-import glob
 import shutil
 import random
-from pathlib import Path
-import torch
 import textwrap
+
+import albumentations as A
+import torch
 from ultralytics import RTDETR, settings
 from ultralytics.data.augment import Albumentations
-import albumentations as A
+
+BASE_DIR = "out_ds_zip/"
+ANNOTATIONS_DIR = BASE_DIR + "labels"
+IMAGES_DIR = BASE_DIR + "images"
+
+BASE_OUTPUT_DIR = "output/"
+OUTPUT_LABELS_DIR = BASE_OUTPUT_DIR + "labels"
+OUTPUT_IMAGES_DIR = BASE_OUTPUT_DIR + "images"
+
+OUTPUT_BASE = "split_dataset"
+TRAIN_SPLIT = 0.8
+
+
+# Function to copy paired image and label
+def copy_files(split_set, img_dst, lbl_dst):
+    for base in split_set:
+        img_src = os.path.join(IMAGES_DIR, base + ".jpg")  # Change extension if needed
+        if not os.path.exists(img_src):  # Try .png
+            img_src = os.path.join(IMAGES_DIR, base + ".png")
+        lbl_src = os.path.join(ANNOTATIONS_DIR, base + ".txt")
+        if os.path.exists(img_src):
+            shutil.copy(img_src, img_dst)
+        if os.path.exists(lbl_src):
+            shutil.copy(lbl_src, lbl_dst)
+
 
 if __name__ == "__main__":
     settings.update({"wandb": True})
-    BASE_DIR = "out_ds_zip/"
-    BASE_OUTPUT_DIR = "output/"
-    ANNOTATIONS_DIR = BASE_DIR + "labels"
-    IMAGES_DIR = BASE_DIR + "images"
-    OUTPUT_LABELS_DIR = BASE_OUTPUT_DIR + "labels"
-    OUTPUT_IMAGES_DIR = BASE_OUTPUT_DIR + "images"
-    TRAIN_SPLIT = 0.8
 
     # Make output directories
-    output_base = "split_dataset"
-    train_img_dir = os.path.join(output_base, "train", "images")
-    train_lbl_dir = os.path.join(output_base, "train", "labels")
-    val_img_dir = os.path.join(output_base, "val", "images")
-    val_lbl_dir = os.path.join(output_base, "val", "labels")
+    train_img_dir = os.path.join(OUTPUT_BASE, "train", "images")
+    train_lbl_dir = os.path.join(OUTPUT_BASE, "train", "labels")
+    val_img_dir = os.path.join(OUTPUT_BASE, "val", "images")
+    val_lbl_dir = os.path.join(OUTPUT_BASE, "val", "labels")
 
     # Create output directories
     for d in [train_img_dir, train_lbl_dir, val_img_dir, val_lbl_dir]:
@@ -41,20 +55,6 @@ if __name__ == "__main__":
     split_index = int(len(base_names) * TRAIN_SPLIT)
     train_set = base_names[:split_index]
     val_set = base_names[split_index:]
-
-
-    # Function to copy paired image and label
-    def copy_files(split_set, img_dst, lbl_dst):
-        for base in split_set:
-            img_src = os.path.join(IMAGES_DIR, base + ".jpg")  # Change extension if needed
-            if not os.path.exists(img_src):  # Try .png
-                img_src = os.path.join(IMAGES_DIR, base + ".png")
-            lbl_src = os.path.join(ANNOTATIONS_DIR, base + ".txt")
-            if os.path.exists(img_src):
-                shutil.copy(img_src, img_dst)
-            if os.path.exists(lbl_src):
-                shutil.copy(lbl_src, lbl_dst)
-
 
     # Copy to train and val folders
     copy_files(train_set, train_img_dir, train_lbl_dir)
