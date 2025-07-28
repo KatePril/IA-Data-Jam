@@ -33,6 +33,20 @@ def copy_files(split_set, img_dst, lbl_dst):
             shutil.copy(lbl_src, lbl_dst)
 
 
+def create_yaml_config():
+    yaml_content = textwrap.dedent('''
+       path: split_dataset
+       train: train/images
+       val: val/images
+
+       nc: 3
+       names: ["Explosives", "Anti-personnel mine", "Anti-vehicle mine"]
+       ''')
+
+    with open("dataset.yaml", "w") as f:
+        f.write(yaml_content.strip() + "\n")
+
+
 if __name__ == "__main__":
     settings.update({"wandb": True})
 
@@ -60,17 +74,7 @@ if __name__ == "__main__":
     copy_files(train_set, train_img_dir, train_lbl_dir)
     copy_files(val_set, val_img_dir, val_lbl_dir)
 
-    yaml_content = textwrap.dedent('''
-           path: split_dataset
-           train: train/images
-           val: val/images
-
-           nc: 3
-           names: ["Explosives", "Anti-personnel mine", "Anti-vehicle mine"]
-           ''')
-
-    with open("dataset.yaml", "w") as f:
-        f.write(yaml_content.strip() + "\n")
+    create_yaml_config()
 
     augmentations = A.Compose([
         A.HorizontalFlip(p=0.5),
@@ -84,13 +88,16 @@ if __name__ == "__main__":
     Albumentations.transforms = augmentations
 
     model = RTDETR("rtdetr-l.pt")
-    model.info()
 
-    results = model.train(data="dataset.yaml", epochs=25,
-                          project="rtdetr-l-ultralytics", name="rtdetr-l", batch=8, device='0',
-                          mosaic=False,
-                          cache=True, plots=True,
-                          augment=True,
-                          save_period=3)  # time=3 (limit by training hours), fraction = 0.5 (to train of dataset))
+    results = model.train(
+        data="dataset.yaml",
+        epochs=25,
+        project="rtdetr-l-ultralytics", name="rtdetr-l", batch=8, device='0',
+        mosaic=False,
+        cache=True,
+        plots=True,
+        augment=True,
+        save_period=3
+    )  # time=3 (limit by training hours), fraction = 0.5 (to train of dataset))
 
     torch.save(model.model, "rtdetr-l-25.pt")

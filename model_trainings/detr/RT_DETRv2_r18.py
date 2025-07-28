@@ -72,8 +72,9 @@ class YOLOtoRTDETRDataset(Dataset):
                         x_center, y_center, width, height = map(float, parts[1:5])
                         
                         # Convert YOLO bbox to COCO format
-                        coco_bbox = self.yolo_to_coco_bbox([x_center, y_center, width, height], 
-                                                         img_width, img_height)
+                        coco_bbox = self.yolo_to_coco_bbox(
+                            [x_center, y_center, width, height], img_width, img_height
+                        )
                         boxes.append(coco_bbox)
                         labels.append(class_id)
         
