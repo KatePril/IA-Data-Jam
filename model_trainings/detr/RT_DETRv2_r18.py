@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from transformers import RTDetrV2ForObjectDetection, RTDetrImageProcessor, RTDetrV2Config, Trainer, TrainingArguments
 
 
-MODEL_START_PATH= "./rtdetr_finetuned" # "checkpoint-7000"
+MODEL_START_PATH = "./rtdetr_finetuned" # "checkpoint-7000"
 
 
 class YOLOtoRTDETRDataset(Dataset):
