@@ -1,4 +1,4 @@
-# Repository for IA-Data-Jam hackaton
+# Repository for AI-Data-Jam hackaton
 
 This repository contains scripts for data preprocessing, models training and some helper scripts
 
